@@ -144,6 +144,8 @@ struct Params {
     bool enforce_BIP94;
     bool fPowNoRetargeting;
     int64_t nPowTargetSpacing;
+    /** XBTC: ASERT half-life in seconds (2 days, BCHN standard for 10-min blocks) */
+    int64_t nASERTHalfLife{2 * 24 * 60 * 60};
     int64_t nPowTargetTimespan;
     std::chrono::seconds PowTargetSpacing() const
     {

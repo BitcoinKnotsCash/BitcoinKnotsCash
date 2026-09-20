@@ -1,0 +1,81 @@
+name: Build Wallets
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  linux:
+    name: Linux (x86_64)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config bsdmainutils \
+            curl git ca-certificates ccache \
+            qtbase5-dev qttools5-dev qttools5-dev-tools libqrencode-dev \
+            libssl-dev libevent-dev libboost-dev \
+            librsvg2-bin imagemagick
+      - name: Build depends (x86_64-linux-gnu)
+        run: |
+          make -C depends -j$(nproc) HOST=x86_64-pc-linux-gnu NO_QT=0
+      - name: Configure + build
+        run: |
+          cmake -B build --toolchain depends/x86_64-pc-linux-gnu/toolchain.cmake -DBUILD_GUI=ON
+          cmake --build build -j$(nproc)
+      - name: Package
+        run: |
+          mkdir -p dist/bitcoinknotscash-linux64
+          cp build/bin/bitcoind build/bin/bitcoin-cli build/bin/bitcoin-tx build/bin/bitcoin-qt build/bin/bitcoin-wallet dist/bitcoinknotscash-linux64/ 2>/dev/null || true
+          cd dist && tar czf bitcoinknotscash-linux64.tar.gz bitcoinknotscash-linux64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bitcoinknotscash-linux64
+          path: dist/bitcoinknotscash-linux64.tar.gz
+
+  windows:
+    name: Windows (x86_64, cross-compiled)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install cross-build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config bsdmainutils \
+            curl git ca-certificates ccache python3 \
+            g++-mingw-w64-x86-64 mingw-w64-x86-64-dev \
+            librsvg2-bin imagemagick nsis
+          sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+          sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+      - name: Build depends (x86_64-w64-mingw32)
+        run: |
+          make -C depends -j$(nproc) HOST=x86_64-w64-mingw32 NO_QT=0
+      - name: Configure + build
+        run: |
+          cmake -B build --toolchain depends/x86_64-w64-mingw32/toolchain.cmake -DBUILD_GUI=ON
+          cmake --build build -j$(nproc)
+      - name: Package
+        run: |
+          mkdir -p dist/bitcoinknotscash-win64
+          cp build/bin/*.exe dist/bitcoinknotscash-win64/ 2>/dev/null || true
+          cd dist && zip -r bitcoinknotscash-win64.zip bitcoinknotscash-win64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bitcoinknotscash-win64
+          path: dist/bitcoinknotscash-win64.zip
+
+  release:
+    name: Attach to release
+    needs: [linux, windows]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: artifacts }
+      - name: Publish release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*

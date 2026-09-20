@@ -30,49 +30,75 @@ static unsigned int ApplyBlake2bTargetShift(unsigned int nBits, const Consensus:
     return bnNew.GetCompact();
 }
 
+// XBTC: ASERT (aserti3-2d) difficulty, anchored at genesis. Ported from Friotaioch/BCHN (MIT).
+// Integer-only, consensus-critical. The one-time BLAKE2b target shift (activation at height 1)
+// is folded into the anchor target, since every block from height 1 is BLAKE2b.
+unsigned int GetNextWorkRequiredASERT(const CBlockIndex* pindexPrev,
+                                      const Consensus::Params& params,
+                                      const CBlockIndex* pindexAnchor)
+{
+    const arith_uint256 powLimit = UintToArith256(params.powLimit);
+    const int64_t nHalfLife = params.nASERTHalfLife;
+
+    const int64_t nAnchorHeight = pindexAnchor->nHeight;          // 0 (genesis)
+    const int64_t nAnchorTime   = pindexAnchor->GetBlockTime();   // genesis nTime
+
+    // Anchor target = genesis nBits, shifted once into BLAKE2b space (blocks >=1 are BLAKE2b).
+    arith_uint256 anchorTarget;
+    anchorTarget.SetCompact(ApplyBlake2bTargetShift(pindexAnchor->nBits, params));
+
+    const int64_t nHeightDiff    = int64_t(pindexPrev->nHeight) - nAnchorHeight;
+    const int64_t nTimeDiff      = pindexPrev->GetBlockTime() - nAnchorTime;
+    const int64_t nIdealTimespan = params.nPowTargetSpacing * (nHeightDiff + 1);
+
+    int64_t exponent = ((nTimeDiff - nIdealTimespan) * 65536) / nHalfLife;
+
+    const int64_t num_shifts = exponent >> 16;
+    exponent -= num_shifts * 65536;
+    const uint64_t frac = uint64_t(exponent);
+
+    const uint64_t factor = 65536 +
+        ((195766423245049ULL * frac +
+          971821376ULL * frac * frac +
+          5127ULL * frac * frac * frac +
+          (1ULL << 47)) >> 48);
+
+    arith_uint256 next = anchorTarget;
+    next *= (uint32_t)factor;
+
+    if (num_shifts <= -256) {
+        return arith_uint256(1).GetCompact();
+    } else if (num_shifts < 0) {
+        next >>= (unsigned)(-num_shifts);
+    } else if (num_shifts >= 15) {
+        return powLimit.GetCompact();
+    } else {
+        next <<= (unsigned)num_shifts;
+    }
+    next >>= 16;
+
+    if (next == 0) return arith_uint256(1).GetCompact();
+    if (next > powLimit) return powLimit.GetCompact();
+    return next.GetCompact();
+}
+
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params)
 {
-    unsigned int nProofOfWorkLimit = UintToArith256(params.powLimit).GetCompact();
+    assert(pindexLast != nullptr);
 
-    unsigned int nBits;
+    if (params.fPowNoRetargeting)
+        return pindexLast->nBits;
 
-    // Only change once per difficulty adjustment interval
-    if ((pindexLast->nHeight+1) % params.DifficultyAdjustmentInterval() != 0)
-    {
-        if (params.fPowAllowMinDifficultyBlocks)
-        {
-            // Special difficulty rule for testnet:
-            // If the new block's timestamp is more than 2* 10 minutes
-            // then allow mining of a min-difficulty block.
-            if (pblock->GetBlockTime() > pindexLast->GetBlockTime() + params.nPowTargetSpacing*2)
-                return nProofOfWorkLimit;
-            else
-            {
-                // Look back to the last non-special-min-difficulty-rules-block
-                const CBlockIndex* pindex = pindexLast;
-                while (pindex->pprev && pindex->nHeight % params.DifficultyAdjustmentInterval() != 0 && pindex->nBits == nProofOfWorkLimit)
-                    pindex = pindex->pprev;
-                nBits = pindex->nBits;
-            }
-        } else {
-            nBits = pindexLast->nBits;
-        }
-    } else {
-        // Go back by what we want to be 14 days worth of blocks
-        int nHeightFirst = pindexLast->nHeight - (params.DifficultyAdjustmentInterval()-1);
-        assert(nHeightFirst >= 0);
-        const CBlockIndex* pindexFirst = pindexLast->GetAncestor(nHeightFirst);
-        assert(pindexFirst);
-
-        nBits = CalculateNextWorkRequired(pindexLast, pindexFirst->GetBlockTime(), params);
+    if (params.fPowAllowMinDifficultyBlocks &&
+        pblock->GetBlockTime() > pindexLast->GetBlockTime() + params.nPowTargetSpacing * 2) {
+        return UintToArith256(params.powLimit).GetCompact();
     }
 
-    if (pindexLast->nHeight + 1 == params.DeploymentHeight(Consensus::DEPLOYMENT_BLAKE2B)) {
-        // Adjust the target for the first block mined under a new PoW algorithm.
-        nBits = ApplyBlake2bTargetShift(nBits, params);
-    }
-
-    return nBits;
+    // XBTC: per-block ASERT anchored at genesis (height 0). Genesis is SHA256d;
+    // every block from height 1 is BLAKE2b (shift folded into the anchor above).
+    const CBlockIndex* pindexAnchor = pindexLast->GetAncestor(0);
+    assert(pindexAnchor != nullptr);
+    return GetNextWorkRequiredASERT(pindexLast, params, pindexAnchor);
 }
 
 unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nFirstBlockTime, const Consensus::Params& params)
@@ -116,58 +142,10 @@ unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nF
 // or decrease beyond the permitted limits.
 bool PermittedDifficultyTransition(const Consensus::Params& params, int64_t height, uint32_t old_nbits, uint32_t new_nbits)
 {
-    if (params.fPowAllowMinDifficultyBlocks) return true;
-
-    // Across a PoW-algorithm change, GetNextWorkRequired shifts the target once
-    // before returning it. Rebase the comparison onto the shifted target so the
-    // usual limits below apply to the change on top of it, rather than
-    // rejecting the shift itself.
-    if (height == params.DeploymentHeight(Consensus::DEPLOYMENT_BLAKE2B)) {
-        old_nbits = ApplyBlake2bTargetShift(old_nbits, params);
-    }
-
-    if (height % params.DifficultyAdjustmentInterval() == 0) {
-        int64_t smallest_timespan = params.nPowTargetTimespan/4;
-        int64_t largest_timespan = params.nPowTargetTimespan*4;
-
-        const arith_uint256 pow_limit = UintToArith256(params.powLimit);
-        arith_uint256 observed_new_target;
-        observed_new_target.SetCompact(new_nbits);
-
-        // Calculate the largest difficulty value possible:
-        arith_uint256 largest_difficulty_target;
-        largest_difficulty_target.SetCompact(old_nbits);
-        largest_difficulty_target *= largest_timespan;
-        largest_difficulty_target /= params.nPowTargetTimespan;
-
-        if (largest_difficulty_target > pow_limit) {
-            largest_difficulty_target = pow_limit;
-        }
-
-        // Round and then compare this new calculated value to what is
-        // observed.
-        arith_uint256 maximum_new_target;
-        maximum_new_target.SetCompact(largest_difficulty_target.GetCompact());
-        if (maximum_new_target < observed_new_target) return false;
-
-        // Calculate the smallest difficulty value possible:
-        arith_uint256 smallest_difficulty_target;
-        smallest_difficulty_target.SetCompact(old_nbits);
-        smallest_difficulty_target *= smallest_timespan;
-        smallest_difficulty_target /= params.nPowTargetTimespan;
-
-        if (smallest_difficulty_target > pow_limit) {
-            smallest_difficulty_target = pow_limit;
-        }
-
-        // Round and then compare this new calculated value to what is
-        // observed.
-        arith_uint256 minimum_new_target;
-        minimum_new_target.SetCompact(smallest_difficulty_target.GetCompact());
-        if (minimum_new_target > observed_new_target) return false;
-    } else if (old_nbits != new_nbits) {
-        return false;
-    }
+    // XBTC: ASERT retargets every block, so the legacy "within 4x per 2016 blocks"
+    // invariant no longer applies. The exact required nBits is enforced contextually
+    // via GetNextWorkRequired() in ContextualCheckBlockHeader().
+    (void)params; (void)height; (void)old_nbits; (void)new_nbits;
     return true;
 }
 
