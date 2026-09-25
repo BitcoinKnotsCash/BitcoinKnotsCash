@@ -24,7 +24,7 @@ jobs:
           make -C depends -j$(nproc) HOST=x86_64-pc-linux-gnu NO_QT=0
       - name: Configure + build
         run: |
-          cmake -B build --toolchain depends/x86_64-pc-linux-gnu/toolchain.cmake -DBUILD_GUI=ON
+          cmake -B build --toolchain depends/x86_64-pc-linux-gnu/toolchain.cmake -DBUILD_GUI=ON -DWITH_QRENCODE=OFF
           cmake --build build -j$(nproc)
       - name: Package
         run: |
@@ -55,7 +55,7 @@ jobs:
           make -C depends -j$(nproc) HOST=x86_64-w64-mingw32 NO_QT=0
       - name: Configure + build
         run: |
-          cmake -B build --toolchain depends/x86_64-w64-mingw32/toolchain.cmake -DBUILD_GUI=ON
+          cmake -B build --toolchain depends/x86_64-w64-mingw32/toolchain.cmake -DBUILD_GUI=ON -DWITH_QRENCODE=OFF
           cmake --build build -j$(nproc)
       - name: Package
         run: |
