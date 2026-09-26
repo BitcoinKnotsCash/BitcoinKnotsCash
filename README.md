@@ -38,6 +38,7 @@ what goes into blocks.
 | **Coinbase maturity** | 100 blocks |
 | **Address format** | bech32 `xbtc1…` |
 | **P2P port** | 8555 |
+| **RPC port** | 8556 |
 | **Network magic** | `0x58 0x42 0x43 0x21` |
 | **Config file** | `bitcoinknotscash.conf` |
 | **Data directory** | `~/.bitcoinknotscash` (Linux), `%APPDATA%\BitcoinKnotsCash` (Windows) |
