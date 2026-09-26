@@ -75,7 +75,19 @@ SplashScreen::SplashScreen(const NetworkStyle* networkStyle)
     pixPaint.drawPixmap(rectIcon, icon);
 
     // check font size and drawing with
-    QStringList titleParts = titleText.split(' ');
+    // XBTC: the client name can be more than two words ("Bitcoin Knots Cash").
+    // Draw the first word small on line 1 and the remaining words large on line 2,
+    // so any 2+ word name renders without tripping the old size==2 assertion.
+    QStringList titleParts;
+    {
+        QStringList all = titleText.split(' ', Qt::SkipEmptyParts);
+        if (all.size() >= 2) {
+            titleParts << all.first();
+            titleParts << QStringList(all.mid(1)).join(' ');
+        } else {
+            titleParts << titleText << QString();
+        }
+    }
     assert(titleParts.size() == 2);
     pixPaint.setFont(QFont(font, 33*fontFactor));
     QFontMetrics fm = pixPaint.fontMetrics();
