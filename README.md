@@ -1,80 +1,108 @@
-Bitcoin Knots
-=============
+<p align="center">
+  <img src="logo.png" alt="Bitcoin Knots Cash" width="160" />
+</p>
 
-https://bitcoinknots.org
+<h1 align="center">Bitcoin Knots Cash (XBTC)</h1>
 
-For an immediately usable, binary version of the Bitcoin Knots software, see
-the website.
+<p align="center">
+  A BLAKE2b proof-of-work cryptocurrency — a fork of
+  <a href="https://bitcoinknots.org">Bitcoin Knots</a> with a fair launch,
+  a 21,000,000 coin supply, and decentralized DATUM/TIDES mining.
+</p>
 
-What is Bitcoin Knots?
-----------------------
+---
 
-Bitcoin Knots connects to the Bitcoin peer-to-peer network to download and fully
-validate blocks and transactions. It also includes a wallet and graphical user
-interface, which can be optionally built.
+## What is Bitcoin Knots Cash?
 
-Further information about Bitcoin Knots is available in the [doc folder](/doc).
+Bitcoin Knots Cash (ticker **XBTC**) is a standalone blockchain based on Bitcoin
+Knots v29.4. It keeps Bitcoin's economic rules — 21 million coins, a block every
+ten minutes, and a reward that halves every 210,000 blocks — while switching the
+proof-of-work algorithm to **BLAKE2b** and the difficulty algorithm to **ASERT
+(aserti3-2d)** for smooth, per-block retargeting.
 
-License
--------
+It is designed for **decentralized mining**: miners run their own node and build
+their own block templates through a DATUM gateway, so no pool operator controls
+what goes into blocks.
 
-Bitcoin Knots is released under the terms of the MIT license. See [COPYING](COPYING) for more
-information or see https://opensource.org/licenses/MIT.
+## Key parameters
 
-Development Process
--------------------
+| | |
+|---|---|
+| **Ticker** | XBTC |
+| **Algorithm** | BLAKE2b (from block 1; the genesis block is SHA-256d) |
+| **Difficulty** | ASERT (aserti3-2d), 2-day half-life, retargets every block |
+| **Block time** | 10 minutes |
+| **Total supply** | 21,000,000 XBTC |
+| **Halving** | every 210,000 blocks |
+| **Initial reward** | 50 XBTC |
+| **Coinbase maturity** | 100 blocks |
+| **Address format** | bech32 `xbtc1…` |
+| **P2P port** | 8555 |
+| **Network magic** | `0x58 0x42 0x43 0x21` |
+| **Config file** | `bitcoinknotscash.conf` |
+| **Data directory** | `~/.bitcoinknotscash` (Linux), `%APPDATA%\BitcoinKnotsCash` (Windows) |
 
-Development generally takes place as part of [Bitcoin Core](https://github.com/bitcoin/bitcoin), and is merged into
-Knots for each release.
+## Download
 
-Even if your pull request to Core is closed, or if your feature is not
-suitable for Core (eg, because it builds on a feature not supported in Core;
-relies on centralised services; etc), it may still be eligible for inclusion
-in Bitcoin Knots. In this case, a pull request may be opened on the
-[Knots GitHub](https://github.com/bitcoinknots/bitcoin) for review and consideration.
-When accepted, you are expected to maintain the submitted branch in your own
-repository, and it will be automatically merged into new releases of Knots.
+Pre-built wallets for **Linux** and **Windows** (daemon + Qt GUI) are on the
+[Releases](https://github.com/BitcoinKnotsCash/BitcoinKnotsCash/releases) page.
 
-Developer IRC can be found on Freenode at #bitcoin-dev.
+- `bitcoinknotscash-linux64.tar.gz` — Linux x86-64
+- `bitcoinknotscash-win64.zip` — Windows x86-64
 
-Testing
--------
+Each archive contains `bitcoind`, `bitcoin-qt`, `bitcoin-cli`, `bitcoin-tx`, `bitcoin-wallet`.
 
-Testing and code review is the bottleneck for development; we get more pull
-requests than we can review and test on short notice. Please be patient and help out by testing
-other people's pull requests, and remember this is a security-critical project where any mistake might cost people
-lots of money.
+## Running a node
 
-### Automated Testing
+```sh
+./bitcoind -daemon
+./bitcoin-cli getblockchaininfo
+```
 
-Developers are strongly encouraged to write [unit tests](src/test/README.md) for new code, and to
-submit new unit tests for old code. Unit tests can be compiled and run
-(assuming they weren't disabled during the generation of the build system) with: `ctest`. Further details on running
-and extending unit tests can be found in [/src/test/README.md](/src/test/README.md).
+Or launch the GUI wallet (`bitcoin-qt`). A minimal `bitcoinknotscash.conf`:
 
-There are also [regression and integration tests](/test), written
-in Python.
-These tests can be run (if the [test dependencies](/test) are installed) with: `build/test/functional/test_runner.py`
-(assuming `build` is your build directory).
+```ini
+server=1
+rpcuser=your-rpc-user
+rpcpassword=your-strong-password
+```
 
-The CI (Continuous Integration) systems make sure that every pull request is built for Windows, Linux, and macOS,
-and that unit/sanity tests are run automatically.
+## Mining
 
-### Manual Quality Assurance (QA) Testing
+Bitcoin Knots Cash is **BLAKE2b** and mined via **DATUM** — miners run their own
+node and gateway so they choose their own transactions. See the
+[Bitcoin Knots mining guide](https://bitcoinknots.org/learn/mining); the same
+approach applies against an XBTC node.
 
-Changes should be tested by somebody other than the developer who wrote the
-code. This is especially important for large or high-risk changes. It is useful
-to add a test plan to the pull request description if testing the changes is
-not straightforward.
+## Building from source
 
-Translations
-------------
+```sh
+sudo apt-get install build-essential cmake pkg-config bsdmainutils python3 \
+    libevent-dev libboost-dev libsqlite3-dev libzmq3-dev \
+    qtbase5-dev qttools5-dev qttools5-dev-tools
 
-Changes to translations as well as new translations can be submitted to
-[Bitcoin Core's Transifex page](https://explore.transifex.com/bitcoin/bitcoin/).
+cmake -B build -DBUILD_GUI=ON
+cmake --build build -j"$(nproc)"
+# binaries in build/bin/
+```
 
-Translations are periodically pulled from Transifex and merged into the git repository. See the
-[translation process](doc/translation_process.md) for details on how this works.
+For reproducible cross-platform builds, use the `depends` system — this is what
+the GitHub Actions release workflow uses to produce the Linux and Windows binaries.
 
-**Important**: We do not accept translation changes as GitHub pull requests because the next
-pull from Transifex would automatically overwrite them again.
+## Consensus / launch details
+
+- **Genesis** mined fresh for XBTC; the chain diverges from Bitcoin entirely.
+- **BLAKE2b from height 1** — the genesis block is SHA-256d, every block after is
+  BLAKE2b. The one-time target shift at the change is folded into the ASERT anchor.
+- **ASERT difficulty** anchored at genesis, 2-day half-life, retargets every block.
+
+## License
+
+Released under the MIT license (see [COPYING](COPYING)). A derivative of
+[Bitcoin Knots](https://github.com/bitcoinknots/bitcoin) and
+[Bitcoin Core](https://github.com/bitcoin/bitcoin) — thanks to their developers.
+
+## Links
+
+- **Source:** https://github.com/BitcoinKnotsCash/BitcoinKnotsCash
+- **Issues:** https://github.com/BitcoinKnotsCash/BitcoinKnotsCash/issues
