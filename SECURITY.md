@@ -1,18 +1,24 @@
 # Security Policy
 
-## Supported Versions
-
-See our website for versions of Bitcoin Knots that are currently supported with
-security updates: https://bitcoinknots.org/
-
 ## Reporting a Vulnerability
 
-To report security issues send an email to luke+security+knots@dashjr.org (not for support).
+Bitcoin Knots Cash (XBTC) is early-stage software. A dedicated security
+contact has not been set up yet.
 
-The following OpenPGP key should be used to communicate sensitive information:
+For now, if you discover a security issue:
 
-| Name | Fingerprint |
-|------|-------------|
-| Luke Dashjr | FAC0 98FE 8DF9 975F 9024  1881 3666 E2B1 782A 18E1 |
+- For **non-sensitive** issues, open an issue at
+  https://github.com/BitcoinKnotsCash/BitcoinKnotsCash/issues
+- For **sensitive** vulnerabilities that should not be disclosed publicly,
+  please wait for a private disclosure channel to be published here, or use
+  GitHub's private vulnerability reporting once enabled on the repository.
 
-You can import a key by running the following command with that individual’s fingerprint: `gpg --keyserver hkps://keys.openpgp.org --recv-keys "<fingerprint>"` Ensure that you put quotes around fingerprints containing spaces.
+Please do **not** report Bitcoin Knots Cash issues to Bitcoin Knots or Bitcoin
+Core — it is a separate project.
+
+## Scope
+
+Bitcoin Knots Cash is a derivative of
+[Bitcoin Knots](https://github.com/bitcoinknots/bitcoin) and
+[Bitcoin Core](https://github.com/bitcoin/bitcoin). Vulnerabilities inherited
+from upstream should also be reported to the relevant upstream project.
