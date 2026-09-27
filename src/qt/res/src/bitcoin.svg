@@ -5,7 +5,7 @@
      License: MIT
 -->
 <g id="icon">
-	<circle cx="512" cy="512" r="495" fill="#F7931A" stroke="#D27A0F" stroke-width="34"/>
+	<circle cx="512" cy="512" r="495" fill="#2ea043" stroke="#1f7a32" stroke-width="34"/>
 	<g>
 		<use xlink:href="bitcoinknots-logo.svg#logo" />
 	</g>
