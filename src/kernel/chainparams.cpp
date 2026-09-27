@@ -162,13 +162,13 @@ public:
         vSeeds.emplace_back("46.7.6.219");
         vSeeds.emplace_back("5.9.134.214");
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,75);
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,137);
-        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,203);
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,0);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
+        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,128);
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x88, 0xB2, 0x1E};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x88, 0xAD, 0xE4};
 
-        bech32_hrp = "xbtc";
+        bech32_hrp = "bc";
 
         vFixedSeeds.clear();  // XBTC: no compiled-in fixed seeds yet; rely on vSeeds / addnode
 
