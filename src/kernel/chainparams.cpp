@@ -160,6 +160,7 @@ public:
         // release ASAP to avoid it where possible.
         // XBTC seed node(s) - the network's initial reachable peers.
         vSeeds.emplace_back("46.7.6.219");
+        vSeeds.emplace_back("5.9.134.214");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,75);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,137);
