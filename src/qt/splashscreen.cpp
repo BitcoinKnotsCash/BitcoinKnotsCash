@@ -59,8 +59,8 @@ SplashScreen::SplashScreen(const NetworkStyle* networkStyle)
 
     // draw a slightly radial gradient
     QRadialGradient gradient(QPoint(0,0), splashSize.width()/devicePixelRatio);
-    gradient.setColorAt(0, networkStyle->AdjustColour(QColor(0xde, 0x7e, 0x11)));
-    gradient.setColorAt(1, networkStyle->AdjustColour(QColor(0xfe, 0xaa, 0x35)));
+    gradient.setColorAt(0, networkStyle->AdjustColour(QColor(0x1f, 0x7a, 0x32)));
+    gradient.setColorAt(1, networkStyle->AdjustColour(QColor(0x2e, 0xa0, 0x43)));
     QRect rGradient(QPoint(0,0), splashSize);
     pixPaint.fillRect(rGradient, gradient);
 
