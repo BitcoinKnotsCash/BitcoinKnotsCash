@@ -18,7 +18,7 @@ static const unsigned int REDUCED_DATA_MAX_BLOCK_WEIGHT = 800000;
 /** The maximum allowed number of signature check operations in a block (network rule) */
 static const int64_t MAX_BLOCK_SIGOPS_COST = 80000;
 /** Coinbase transaction outputs can only be spent after this number of new blocks (network rule) */
-static const int COINBASE_MATURITY = 100;
+static const int COINBASE_MATURITY = 4320; // XBTC: 30 days (4320 blocks * 10 min)
 
 static const int WITNESS_SCALE_FACTOR = 4;
 

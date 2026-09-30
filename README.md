@@ -35,7 +35,7 @@ what goes into blocks.
 | **Total supply** | 21,000,000 XBTC |
 | **Halving** | every 210,000 blocks |
 | **Initial reward** | 50 XBTC |
-| **Coinbase maturity** | 100 blocks |
+| **Coinbase maturity** | 4320 blocks (30 days) |
 | **Address format** | bech32 `xbtc1…` |
 | **P2P port** | 8555 |
 | **RPC port** | 8556 |
