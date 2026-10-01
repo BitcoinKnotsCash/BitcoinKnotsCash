@@ -148,9 +148,9 @@ public:
         m_assumed_blockchain_size = 1;
         m_assumed_chain_state_size = 1;
 
-        genesis = CreateGenesisBlock(1758009600, 1122756, 0x1e0ffff0, 1, 50 * COIN);
+        genesis = CreateGenesisBlock(1790871200, 2723545, 0x1e0ffff0, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256{"00000dba893db2243ba67ef5c09e1ac13661539c06c9e66c463c0621dfcf4b66"});
+        assert(consensus.hashGenesisBlock == uint256{"00000ff9aecbde095b1baaae5f725db579251deb1e83f30c1aa5c5afd0cd6815"});
         assert(genesis.hashMerkleRoot == uint256{"d1e7eaf41cf7d8f71038b6944e7464f378fb039864fdeba0a7222a76f17152a8"});
 
         // Note that of those which support the service bits prefix, most only support a subset of
@@ -177,7 +177,7 @@ public:
 
         checkpointData = {
             {
-                {0, uint256{"00000dba893db2243ba67ef5c09e1ac13661539c06c9e66c463c0621dfcf4b66"}},
+                {0, uint256{"00000ff9aecbde095b1baaae5f725db579251deb1e83f30c1aa5c5afd0cd6815"}},
             }
         };
 
