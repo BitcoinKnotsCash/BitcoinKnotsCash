@@ -4558,7 +4558,7 @@ bool CheckBlock(const CBlock& block, BlockValidationState& state, const Consensu
         if (block.vtx[i]->IsCoinBase())
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-multiple", "more than one coinbase");
 
-    if (block.m_height == consensusParams.DeploymentHeight(Consensus::DEPLOYMENT_BLAKE2B)) {
+    if (!consensusParams.Blake2bHeadline.empty() && block.m_height == consensusParams.DeploymentHeight(Consensus::DEPLOYMENT_BLAKE2B)) {
         const auto& coinbase = block.vtx[0]->vin[0].scriptSig;
         if (std::search(coinbase.begin(), coinbase.end(), consensusParams.Blake2bHeadline.begin(), consensusParams.Blake2bHeadline.end()) == coinbase.end()) {
             return state.Invalid(

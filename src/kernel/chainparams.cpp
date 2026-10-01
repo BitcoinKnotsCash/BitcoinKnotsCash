@@ -119,7 +119,7 @@ public:
 
         consensus.Blake2bHeight = 1;  // XBTC: genesis SHA256d, BLAKE2b from height 1
         {
-            constexpr std::string_view headline = "8-30 NYPost Deride And Conquer";
+            constexpr std::string_view headline = "";  // XBTC: no headline requirement
             consensus.Blake2bHeadline.assign(headline.begin(), headline.end());
         }
         consensus.Blake2bTargetShift = 22;
