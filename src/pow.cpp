@@ -43,9 +43,11 @@ unsigned int GetNextWorkRequiredASERT(const CBlockIndex* pindexPrev,
     const int64_t nAnchorHeight = pindexAnchor->nHeight;          // 0 (genesis)
     const int64_t nAnchorTime   = pindexAnchor->GetBlockTime();   // genesis nTime
 
-    // Anchor target = genesis nBits, shifted once into BLAKE2b space (blocks >=1 are BLAKE2b).
+    // Anchor target = genesis nBits directly. Genesis already encodes a sane BLAKE2b
+    // starting difficulty (<= powLimit), so no target shift is applied here - shifting
+    // would inflate the anchor far beyond powLimit and pin difficulty at the floor.
     arith_uint256 anchorTarget;
-    anchorTarget.SetCompact(ApplyBlake2bTargetShift(pindexAnchor->nBits, params));
+    anchorTarget.SetCompact(pindexAnchor->nBits);
 
     const int64_t nHeightDiff    = int64_t(pindexPrev->nHeight) - nAnchorHeight;
     const int64_t nTimeDiff      = pindexPrev->GetBlockTime() - nAnchorTime;
