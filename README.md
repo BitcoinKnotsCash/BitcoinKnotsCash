@@ -36,7 +36,7 @@ what goes into blocks.
 | **Halving** | every 210,000 blocks |
 | **Initial reward** | 50 XBTC |
 | **Coinbase maturity** | 4320 blocks (30 days) |
-| **Address format** | bech32 `xbtc1…` |
+| **Address format** | bech32 `bc1…` |
 | **P2P port** | 8555 |
 | **RPC port** | 8556 |
 | **Network magic** | `0x58 0x42 0x43 0x21` |
